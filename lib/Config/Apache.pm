@@ -9,7 +9,7 @@ use IPC::System::Simple qw(capturex);
 our $VERSION = '0.01';
 
 has 'config_file' => (is => 'ro', isa => 'Str');
-has 'parsed_config' => (is => 'rw', isa => 'HashRef', default => {});
+has 'parsed_config' => (is => 'rw', isa => 'HashRef', default => sub {+{}});
 
 sub BUILDARGS {
     my ($class, %opts) = @_;
