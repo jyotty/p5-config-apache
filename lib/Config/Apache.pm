@@ -39,13 +39,17 @@ sub BUILD {
             if (!$hr) {
                 croak "Container end tag </$1> on line $. has no open tag";
             } elsif ($hr->{start} ne $1) {
-                croak "Container end tag </$1> on line $. does not match expected start tag $hr->{start}";
+                croak "Container end tag </$1> on line $. does not match start tag <$hr->{start}>";
             }
         } elsif (m/ \s* (\S+) \s* (.*)/x) {
             $ref->append('directive', {name => $1, value => $2});
         } else {
             croak "Error on line $.: $_";
         }
+    }
+
+    if (scalar @ancestors) {
+        croak "Open container tag $ancestors[-1]->{start} not closed by eof";
     }
 }
 
