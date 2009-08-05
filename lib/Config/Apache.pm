@@ -47,9 +47,6 @@ sub BUILD {
             croak "Error on line $.: $_";
         }
     }
-
-    use Data::Dump;
-    ddx $self->children;
 }
 
 
