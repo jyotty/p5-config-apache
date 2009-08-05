@@ -24,23 +24,40 @@ sub BUILDARGS {
 sub BUILD {
 	my ($self) = shift;
 	open my $cf, '<', $self->config_file or croak "Can't open config file: $!";
-	
+
+    my @ancestors;
+
     while (<$cf>) {
+        my $ref = scalar @ancestors ? $ancestors[-1]->{'ref'} : $self;
         if (m/^\s*\#/x || m/^\s*$/x) { # comment or blank line
-            $self->append('comment', {value => $_});
+            $ref->append('comment', {value => $_});
         } elsif (m/^ \s* < (.*?) \s+ (.*) > /x) {
-            $self->append('container', {name => $1, value => $2});
-        } elsif (m{^ \s* </ (.*) > }x) {
-            #print "End container: </$1>\n";
+            $ref->append('container', {name => $1, value => $2});
+            push @ancestors, {'ref' => $ref->children->[-1], start => $1};
+        } elsif (m{^ \s* </ (.*?) > \s* $}x) {
+            my $hr = pop @ancestors;
+            if (!$hr) {
+                croak "Container end tag </$1> on line $. has no open tag";
+            } elsif ($hr->{start} ne $1) {
+                croak "Container end tag </$1> on line $. does not match expected start tag $hr->{start}";
+            }
+        } elsif (m/ \s* (\S+) \s* (.*)/x) {
+            $ref->append('directive', {name => $1, value => $2});
         } else {
-            m/\s*(\S+)\s*(.*)/x;
-            $self->append('directive', {name => $1, value => $2});
+            croak "Error on line $.: $_";
         }
     }
 
     use Data::Dump;
     ddx $self->children;
 }
+
+
+package Config::Apache::Node;
+use Mouse;
+
+has 'children' => (is => 'rw', isa => 'ArrayRef', default => sub {[]} );
+#has 'parent' => (is => 'ro', weak_ref => 1);
 
 sub append {
     my ($self, $type, $args) = @_;
@@ -55,12 +72,6 @@ sub append {
     }
     $self->children( \@root );
 }
-
-package Config::Apache::Node;
-use Mouse;
-
-has 'children' => (is => 'rw', isa => 'ArrayRef', default => sub {[]} );
-#has 'parent' => (is => 'ro', weak_ref => 1);
 
 
 package Config::Apache::Comment;
