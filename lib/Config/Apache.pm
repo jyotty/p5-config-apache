@@ -25,7 +25,6 @@ sub BUILD {
 	open my $cf, '<', $self->config_file or croak "Can't open config file: $!";
 	
     while (<$cf>) {
-        chomp;
         if (m/^\s*\#/x || m/^\s*$/x) { # comment or blank line
             $self->append(Config::Apache::Comment->new(value => $_));
         } elsif (m/^ \s* < (.*?) \s+ (.*) > /x) {
@@ -47,7 +46,12 @@ sub append {
     my $obj = shift;
 
     my @root = @{$self->parsed_config};
-    push(@root, $obj);
+    if (    ref $obj eq 'Config::Apache::Comment' 
+         && ref $root[-1] eq 'Config::Apache::Comment') {
+        $root[-1]->append($obj->value);
+    } else {
+        push(@root, $obj);
+    }
     $self->parsed_config( \@root );
 }
 
@@ -60,6 +64,12 @@ package Config::Apache::Comment;
 use Mouse;
 
 extends 'Config::Apache::Node';
+
+sub append {
+    my $self = shift;
+    $self->value($self->value().shift);
+}
+    
 
 package Config::Apache::Directive;
 use Mouse;
