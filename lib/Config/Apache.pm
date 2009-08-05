@@ -26,14 +26,14 @@ sub BUILD {
 	
     while (<$cf>) {
         if (m/^\s*\#/x || m/^\s*$/x) { # comment or blank line
-            $self->append(Config::Apache::Comment->new(value => $_));
+            $self->append('comment', {value => $_});
         } elsif (m/^ \s* < (.*?) \s+ (.*) > /x) {
-            $self->append(Config::Apache::Container->new(name => $1, value => $2));
+            $self->append('container', {name => $1, value => $2});
         } elsif (m{^ \s* </ (.*) > }x) {
             #print "End container: </$1>\n";
         } else {
             m/\s*(\S+)\s*(.*)/x;
-            $self->append(Config::Apache::Directive->new(name => $1, value => $2));
+            $self->append('directive', {name => $1, value => $2});
         }
     }
 
@@ -42,15 +42,15 @@ sub BUILD {
 }
 
 sub append {
-    my $self = shift;
-    my $obj = shift;
+    my ($self, $type, $args) = @_;
 
     my @root = @{$self->parsed_config};
-    if (    ref $obj eq 'Config::Apache::Comment' 
+    if (    $type eq 'comment' 
          && ref $root[-1] eq 'Config::Apache::Comment') {
-        $root[-1]->append($obj->value);
+        $root[-1]->append($args->{value});
     } else {
-        push(@root, $obj);
+        no strict 'refs'; # being evil is fun
+        push(@root, "Config::Apache::\u$type"->new($args));
     }
     $self->parsed_config( \@root );
 }
@@ -59,6 +59,7 @@ package Config::Apache::Node;
 use Mouse;
 has 'value' => (is => 'rw', isa => 'Str', required => 1);
 #has 'parent' => (is => 'ro', weak_ref => 1);
+
 
 package Config::Apache::Comment;
 use Mouse;
@@ -77,6 +78,7 @@ use Mouse;
 extends 'Config::Apache::Node';
 
 has 'name' => (is => 'ro', isa => 'Str');
+
 
 package Config::Apache::Container;
 use Mouse;
