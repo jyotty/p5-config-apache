@@ -22,8 +22,8 @@ sub BUILDARGS {
 }
 
 sub BUILD {
-	my ($self) = shift;
-	open my $cf, '<', $self->config_file or croak "Can't open config file: $!";
+    my ($self) = shift;
+    open my $cf, '<', $self->config_file or croak "Can't open config file: $!";
 
     my @ancestors;
 
@@ -67,7 +67,7 @@ sub append {
          && ref $root[-1] eq 'Config::Apache::Comment') {
         $root[-1]->append($args->{value});
     } else {
-        no strict 'refs'; # being evil is fun
+        no strict 'refs';
         push(@root, "Config::Apache::\u$type"->new($args));
     }
     $self->children( \@root );
