@@ -1,6 +1,6 @@
 package Config::Apache;
-
 use Mouse;
+
 use Carp;
 
 use IPC::System::Simple qw(capturex);
@@ -27,18 +27,53 @@ sub BUILD {
     while (<$cf>) {
         chomp;
         if (m/^\s*\#/x || m/^\s*$/x) { # comment or blank line
-            print "Comment: $_\n";
+            $self->append(Config::Apache::Comment->new(value => $_));
         } elsif (m/^ \s* < (.*?) \s+ (.*) > /x) {
-            print "Container directive: <$1 $2>\n";
+            $self->append(Config::Apache::Container->new(name => $1, value => $2));
         } elsif (m{^ \s* </ (.*) > }x) {
-            print "End container: </$1>\n";
+            #print "End container: </$1>\n";
         } else {
-            print "Directive: $_\n";
+            m/\s*(\S+)\s*(.*)/x;
+            $self->append(Config::Apache::Directive->new(name => $1, value => $2));
         }
     }
+
+    use Data::Dump;
+    ddx $self->parsed_config;
 }
 
+sub append {
+    my $self = shift;
+    my $obj = shift;
 
+    my @root = @{$self->parsed_config};
+    push(@root, $obj);
+    $self->parsed_config( \@root );
+}
+
+package Config::Apache::Node;
+use Mouse;
+has 'value' => (is => 'rw', isa => 'Str', required => 1);
+#has 'parent' => (is => 'ro', weak_ref => 1);
+
+package Config::Apache::Comment;
+use Mouse;
+
+extends 'Config::Apache::Node';
+
+package Config::Apache::Directive;
+use Mouse;
+
+extends 'Config::Apache::Node';
+
+has 'name' => (is => 'ro', isa => 'Str');
+
+package Config::Apache::Container;
+use Mouse;
+
+extends 'Config::Apache::Directive';
+
+has 'children' => (is => 'rw', isa => 'ArrayRef', default => sub {[]} );
 
 1;
 
@@ -66,38 +101,9 @@ Version 0.01
 
     $conf->commit;
     
-
-=head1 FUNCTIONS
-
-=head2 function1
-
-=cut
-
-=head2 function2
-
-=cut
-
-=head1 AUTHOR
-
-Josh Yotty, C<< <asdf at asdf dot adsf> >>
-
 =head1 BUGS
 
-Frot
-
-
-
-=head1 SUPPORT
-
-You can find documentation for this module with the perldoc command.
-
-    perldoc Config::Apache
-
-
-You can also look for information at:
-
-=head1 ACKNOWLEDGEMENTS
-
+Plenty
 
 =head1 COPYRIGHT & LICENSE
 
@@ -105,6 +111,5 @@ Copyright 2009 Josh Yotty, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
-
 
 =cut
