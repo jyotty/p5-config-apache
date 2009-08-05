@@ -1,6 +1,8 @@
 package Config::Apache;
 use Mouse;
 
+extends 'Config::Apache::Node';
+
 use Carp;
 
 use IPC::System::Simple qw(capturex);
@@ -8,7 +10,6 @@ use IPC::System::Simple qw(capturex);
 our $VERSION = '0.01';
 
 has 'config_file' => (is => 'ro', isa => 'Str');
-has 'parsed_config' => (is => 'rw', isa => 'ArrayRef', default => sub {[]});
 
 sub BUILDARGS {
     my ($class, %opts) = @_;
@@ -38,13 +39,13 @@ sub BUILD {
     }
 
     use Data::Dump;
-    ddx $self->parsed_config;
+    ddx $self->children;
 }
 
 sub append {
     my ($self, $type, $args) = @_;
 
-    my @root = @{$self->parsed_config};
+    my @root = @{$self->children};
     if (    $type eq 'comment' 
          && ref $root[-1] eq 'Config::Apache::Comment') {
         $root[-1]->append($args->{value});
@@ -52,19 +53,20 @@ sub append {
         no strict 'refs'; # being evil is fun
         push(@root, "Config::Apache::\u$type"->new($args));
     }
-    $self->parsed_config( \@root );
+    $self->children( \@root );
 }
 
 package Config::Apache::Node;
 use Mouse;
-has 'value' => (is => 'rw', isa => 'Str', required => 1);
+
+has 'children' => (is => 'rw', isa => 'ArrayRef', default => sub {[]} );
 #has 'parent' => (is => 'ro', weak_ref => 1);
 
 
 package Config::Apache::Comment;
 use Mouse;
 
-extends 'Config::Apache::Node';
+has 'value' => (is => 'rw', isa => 'Str', required => 1);
 
 sub append {
     my $self = shift;
@@ -75,17 +77,15 @@ sub append {
 package Config::Apache::Directive;
 use Mouse;
 
-extends 'Config::Apache::Node';
-
 has 'name' => (is => 'ro', isa => 'Str');
+has 'value' => (is => 'rw', isa => 'Str', required => 1);
 
 
 package Config::Apache::Container;
 use Mouse;
 
-extends 'Config::Apache::Directive';
+extends 'Config::Apache::Directive', 'Config::Apache::Node';
 
-has 'children' => (is => 'rw', isa => 'ArrayRef', default => sub {[]} );
 
 1;
 
