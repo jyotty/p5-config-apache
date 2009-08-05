@@ -1,15 +1,14 @@
 package Config::Apache;
-use Any::Moose;
 
-use Config::Apache::Comment;
-use Config::Apache::Directive;
+use Mouse;
+use Carp;
 
 use IPC::System::Simple qw(capturex);
 
 our $VERSION = '0.01';
 
 has 'config_file' => (is => 'ro', isa => 'Str');
-has 'parsed_config' => (is => 'rw', isa => 'HashRef', default => sub {+{}});
+has 'parsed_config' => (is => 'rw', isa => 'ArrayRef', default => sub {[]});
 
 sub BUILDARGS {
     my ($class, %opts) = @_;
@@ -22,7 +21,21 @@ sub BUILDARGS {
 }
 
 sub BUILD {
+	my ($self) = shift;
+	open my $cf, '<', $self->config_file or croak "Can't open config file: $!";
 	
+    while (<$cf>) {
+        chomp;
+        if (m/^\s*\#/x || m/^\s*$/x) { # comment or blank line
+            print "Comment: $_\n";
+        } elsif (m/^ \s* < (.*?) \s+ (.*) > /x) {
+            print "Container directive: <$1 $2>\n";
+        } elsif (m{^ \s* </ (.*) > }x) {
+            print "End container: </$1>\n";
+        } else {
+            print "Directive: $_\n";
+        }
+    }
 }
 
 
