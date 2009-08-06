@@ -1,3 +1,8 @@
 There are several modules that sorta almost parse apache config files for real on CPAN.
 
-Here's my attempt, assuming I don't get bored.
+This one doesn't quite work, either.
+
+Todo:
+* Multiline directives/backslash/quoted string fun
+* Process includes
+* Searching, modification, and saving the conf to disk
