@@ -4,5 +4,5 @@ Makefile.PL
 README
 lib/Config/Apache.pm
 t/00-load.t
-t/pod-coverage.t
+t/01-bad.t
 t/pod.t
