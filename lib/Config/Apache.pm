@@ -6,6 +6,7 @@ extends 'Config::Apache::Node';
 use Carp;
 
 use IPC::System::Simple qw(capturex);
+use File::Spec::Functions;
 
 our $VERSION = '0.01';
 
@@ -16,7 +17,8 @@ sub BUILDARGS {
 
     if (!exists $opts{config_file}) {
         my $compile_settings = capturex('apachectl', '-V');
-        ($opts{config_file}) = $compile_settings =~ m/SERVER_CONFIG_FILE="(.*?)"/;
+        my ($hr, $cf) = $compile_settings =~ m/HTTPD_ROOT="(.*?)".*SERVER_CONFIG_FILE="(.*?)"/s;
+        $opts{config_file} = $cf =~ m{^/} ? $cf : catfile($hr, $cf);
     }
     return \%opts;
 }
@@ -52,7 +54,7 @@ sub BUILD {
     }
 
     if (scalar @ancestors) {
-        croak "Open container tag $ancestors[-1]->{start} not closed by eof";
+        croak "Open container tag $ancestors[-1]->{start} was not closed by eof";
     }
 }
 
