@@ -28,20 +28,23 @@ sub BUILD {
     my @ancestors;
 
     while (<$cf>) {
+        # if we're inside a container, add to that node
         my $ref = scalar @ancestors ? $ancestors[-1]->{'ref'} : $self;
+
         if (m/^\s*\#/x || m/^\s*$/x) { # comment or blank line
             $ref->append('comment', {value => $_});
-        } elsif (m/^ \s* < (.*?) \s+ (.*) > /x) {
+        } elsif (m/^ \s* < (.*?) \s+ (.*) > /x) { # apache directive container
             $ref->append('container', {name => $1, value => $2});
-            push @ancestors, {'ref' => $ref->children->[-1], start => $1};
-        } elsif (m{^ \s* </ (.*?) > \s* $}x) {
-            my $hr = pop @ancestors;
-            if (!$hr) {
+            # add it to the stack so contained directives go… in the container
+            push @ancestors, {'ref' => $ref->children->[-1], start => $1}; 
+        } elsif (m{^ \s* </ (.*?) > \s* $}x) { # container end
+            my $node = pop @ancestors;
+            if (!$node) {
                 croak "Container end tag </$1> on line $. has no open tag";
-            } elsif ($hr->{start} ne $1) {
-                croak "Container end tag </$1> on line $. does not match start tag <$hr->{start}>";
+            } elsif ($node->{start} ne $1) {
+                croak "Container end tag </$1> on line $. does not match start tag <$node->{start}>";
             }
-        } elsif (m/ \s* (\S+) \s* (.*)/x) {
+        } elsif (m/ \s* (\S+) \s* (.*)/x) { # directive
             $ref->append('directive', {name => $1, value => $2});
         } else {
             croak "Error on line $.: $_";
