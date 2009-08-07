@@ -13,7 +13,7 @@ is_deeply($c->children,
             name   => 'Directory',
             value  => '/var/www',
             children => [
-                { name => "Options", value => ['Indexes FollowSymLinks MultiViews'] },
+                { name => "Options", value => [qw(Indexes FollowSymLinks MultiViews)] },
                 { name => "AllowOverride", value => 'None' },
                 {
                     name    => 'LimitExcept',
