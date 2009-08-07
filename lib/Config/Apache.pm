@@ -28,8 +28,18 @@ sub BUILD {
     open my $cf, '<', $self->config_file or croak "Can't open config file: $!";
 
     my @ancestors;
+    my $acc = '';
 
     while (<$cf>) {
+        if (m/\\$/) { # backslash at end of line
+            chomp; chop; # first time I've ever used this
+            $acc .= $_;
+            next;
+        } elsif ($acc) {
+            $_ = $acc.$_;
+            $acc = '';
+        }
+
         # if we're inside a container, add to that node
         my $ref = scalar @ancestors ? $ancestors[-1]->{'ref'} : $self;
 
