@@ -95,7 +95,18 @@ package Config::Apache::Directive;
 use Mouse;
 
 has 'name' => (is => 'ro', isa => 'Str');
-has 'value' => (is => 'rw', isa => 'Str', required => 1);
+has 'value' => (is => 'rw', required => 1);
+
+sub BUILD {
+    my ($self) = shift;
+
+    # ripped the double quoted matcher from perlre.
+    # I'll be honest, I have no idea where the undefs come from.
+    if ($self->value =~ /\s|"/) {
+        my @args = grep { $_ } $self->value =~ /"((?>(?:(?>[^"\\]+)|\\.)*))"|(\S+)/g;
+        $self->value(@args > 1 ? \@args : $args[0]);
+    }
+}
 
 
 package Config::Apache::Container;
