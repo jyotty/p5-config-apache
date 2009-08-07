@@ -5,8 +5,6 @@ use warnings;
 use Test::More 'no_plan';
 
 use Config::Apache;
-use Data::Dump;
-
 
 is_deeply(Config::Apache->new(config_file => 't/confs/simple.conf')->children, 
         [{
@@ -57,5 +55,3 @@ is_deeply(Config::Apache->new(config_file => 't/confs/backslash.conf')->children
         }],
         'backslashes before a newline are a continuation'
 );
-
-
