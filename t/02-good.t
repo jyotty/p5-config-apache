@@ -15,6 +15,7 @@ is_deeply($c->children,
             children => [
                 { name => "Options", value => [qw(Indexes FollowSymLinks MultiViews)] },
                 { name => "AllowOverride", value => 'None' },
+                { name => "DirectoryIndex", value => ['index.html', 'test index.html']},
                 {
                     name    => 'LimitExcept',
                     value   => [qw(GET HEAD POST)],
