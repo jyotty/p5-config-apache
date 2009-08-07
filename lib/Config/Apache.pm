@@ -8,7 +8,7 @@ use Carp;
 use IPC::System::Simple qw(capturex);
 use File::Spec::Functions;
 
-our $VERSION = '0.01';
+our $VERSION = '0.03';
 
 has 'config_file' => (is => 'ro', isa => 'Str');
 
@@ -135,7 +135,7 @@ Config::Apache - Parse, query and modify Apache configuration files.
 
 =head1 VERSION
 
-Version 0.01
+Version 0.03
 
 =head1 SYNOPSIS
 
