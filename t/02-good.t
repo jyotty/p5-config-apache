@@ -25,6 +25,13 @@ is_deeply(Config::Apache->new(config_file => 't/confs/simple.conf')->children,
                     ],
                 },
             ]
+        },
+        {
+            value => "\n",
+        },
+        {
+            name => 'MaxRequestsPerChild',
+            value => 0,
         }],
         'simple nested conf'
 );
