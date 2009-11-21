@@ -1,5 +1,5 @@
 package Config::Apache;
-use Mouse;
+use Moose;
 
 extends 'Config::Apache::Node';
 
@@ -70,10 +70,9 @@ sub BUILD {
 
 
 package Config::Apache::Node;
-use Mouse;
+use Moose;
 
 has 'children' => (is => 'rw', isa => 'ArrayRef', default => sub {[]} );
-#has 'parent' => (is => 'ro', weak_ref => 1);
 
 sub append {
     my ($self, $type, $args) = @_;
@@ -91,7 +90,7 @@ sub append {
 
 
 package Config::Apache::Comment;
-use Mouse;
+use Moose;
 
 has 'value' => (is => 'rw', isa => 'Str', required => 1);
 
@@ -102,7 +101,7 @@ sub append {
     
 
 package Config::Apache::Directive;
-use Mouse;
+use Moose;
 
 has 'name' => (is => 'ro', isa => 'Str');
 has 'value' => (is => 'rw', required => 1);
@@ -120,7 +119,7 @@ sub BUILD {
 
 
 package Config::Apache::Container;
-use Mouse;
+use Moose;
 
 extends 'Config::Apache::Directive', 'Config::Apache::Node';
 
