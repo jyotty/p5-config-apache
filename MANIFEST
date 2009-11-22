@@ -3,6 +3,10 @@ MANIFEST
 Makefile.PL
 README
 lib/Config/Apache.pm
+lib/Config/Apache/Node.pm
+lib/Config/Apache/Comment.pm
+lib/Config/Apache/Container.pm
+lib/Config/Apache/Directive.pm
 t/00-load.t
 t/01-bad.t
 t/02-good.t

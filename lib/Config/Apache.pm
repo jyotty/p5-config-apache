@@ -8,7 +8,7 @@ use Carp;
 use IPC::System::Simple qw(capturex);
 use File::Spec::Functions;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 has 'config_file' => (is => 'ro', isa => 'Str');
 
@@ -68,62 +68,6 @@ sub BUILD {
     }
 }
 
-
-package Config::Apache::Node;
-use Moose;
-
-has 'children' => (is => 'rw', isa => 'ArrayRef', default => sub {[]} );
-
-sub append {
-    my ($self, $type, $args) = @_;
-
-    my @root = @{$self->children};
-    if (    $type eq 'comment' 
-         && ref $root[-1] eq 'Config::Apache::Comment') {
-        $root[-1]->append($args->{value});
-    } else {
-        no strict 'refs';
-        push(@root, "Config::Apache::\u$type"->new($args));
-    }
-    $self->children( \@root );
-}
-
-
-package Config::Apache::Comment;
-use Moose;
-
-has 'value' => (is => 'rw', isa => 'Str', required => 1);
-
-sub append {
-    my $self = shift;
-    $self->value($self->value().shift);
-}
-    
-
-package Config::Apache::Directive;
-use Moose;
-
-has 'name' => (is => 'ro', isa => 'Str');
-has 'value' => (is => 'rw', required => 1);
-
-sub BUILD {
-    my ($self) = shift;
-
-    # ripped the double quoted matcher from perlre.
-    # I'll be honest, I have no idea where the undefs come from.
-    if ($self->value =~ /\s|"/) {
-        my @args = grep { defined } $self->value =~ /"((?>(?:(?>[^"\\]+)|\\.)*))"|(\S+)/g;
-        $self->value(@args > 1 ? \@args : $args[0]);
-    }
-}
-
-
-package Config::Apache::Container;
-use Moose;
-
-extends 'Config::Apache::Directive', 'Config::Apache::Node';
-
-
 1;
 
 __END__
@@ -134,7 +78,7 @@ Config::Apache - Parse, query and modify Apache configuration files.
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =head1 SYNOPSIS
 
