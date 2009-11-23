@@ -11,13 +11,25 @@ use File::Spec::Functions;
 our $VERSION = '0.04';
 
 has 'config_file' => (is => 'ro', isa => 'Str');
+has 'compiled_with' => (is => 'ro', isa => 'HashRef[Str]');
 
 sub BUILDARGS {
     my ($class, %opts) = @_;
 
+    my @compile_settings = capturex('apachectl', '-V');
+    my %compiled_with;
+    for (@compile_settings) {
+        next unless /^\s-D/x;
+
+        if (/^\s-D\s([_A-Z]+)="?(.*?)"?$/x) {
+            $compiled_with{$1} = $2;
+        } elsif (/^\s-D\s([_A-Z]+)/x) {
+            $compiled_with{$1} = 1;
+        }
+    }
+    $opts{compiled_with} = \%compiled_with;
     if (!exists $opts{config_file}) {
-        my $compile_settings = capturex('apachectl', '-V');
-        my ($hr, $cf) = $compile_settings =~ m/HTTPD_ROOT="(.*?)".*SERVER_CONFIG_FILE="(.*?)"/s;
+        my ($hr, $cf) = ($compiled_with{HTTPD_ROOT}, $compiled_with{SERVER_CONFIG_FILE});
         $opts{config_file} = $cf =~ m{^/} ? $cf : catfile($hr, $cf);
     }
     return \%opts;
