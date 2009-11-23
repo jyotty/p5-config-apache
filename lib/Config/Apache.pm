@@ -46,7 +46,7 @@ sub BUILD {
         if (m/^\s*\#/x || m/^\s*$/x) { # comment or blank line
             $ref->append('comment', {value => $_});
         } elsif (m/^ \s* < (.*?) \s+ (.*) > /x) { # apache directive container
-            $ref->append('container', {name => $1, value => $2});
+            $ref->append('container', {name => $1, value => $2, parent => $ref});
             # add it to the stack so contained directives go… in the container
             push @ancestors, {'ref' => $ref->children->[-1], start => $1}; 
         } elsif (m{^ \s* </ (.*?) > \s* $}x) { # container end
