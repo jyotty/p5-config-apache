@@ -12,6 +12,7 @@ our $VERSION = '0.04';
 
 has 'config_file' => (is => 'ro', isa => 'Str');
 has 'compiled_with' => (is => 'ro', isa => 'HashRef[Str]');
+has 'state' => (is => 'rw', isa => 'HashRef[Str]', default => sub {+{}});
 
 sub BUILDARGS {
     my ($class, %opts) = @_;
@@ -41,6 +42,7 @@ sub BUILD {
 
     my @ancestors;
     my $acc = '';
+    $self->state->{ServerRoot} = $self->compiled_with->{HTTPD_ROOT};
 
     while (<$cf>) {
         if (m/\\$/) { # backslash at end of line
@@ -70,6 +72,7 @@ sub BUILD {
             }
         } elsif (m/ \s* (\S+) \s* (.*)/x) { # directive
             $ref->append('directive', {name => $1, value => $2});
+            $self->state->{$1} = $2;
         } else {
             croak "Error on line $.: $_";
         }
