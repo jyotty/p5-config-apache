@@ -17,15 +17,15 @@ has 'parent' => (
 sub append {
     my ($self, $type, $args) = @_;
 
-    my @root = @{$self->children};
+    my @children = @{$self->children};
     if (    $type eq 'comment' 
-         && ref $root[-1] eq 'Config::Apache::Comment') {
-        $root[-1]->append($args->{value});
+         && ref $children[-1] eq 'Config::Apache::Comment') {
+        $children[-1]->append($args->{value});
     } else {
         no strict 'refs';
-        push(@root, "Config::Apache::\u$type"->new($args));
+        push(@children, "Config::Apache::\u$type"->new($args));
     }
-    $self->children( \@root );
+    $self->children( \@children );
 }
 
 sub root {
